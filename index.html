@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Liive의 비밀의 방 🍓</title>
+  <style>
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #fff8dc;
+      font-family: 'Pretendard', sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1, h2 { color: #ff6f61; }
+    .hidden { display: none; }
+    .visible { display: block; }
+    .section { display: none; background: #fff2b2; border-radius: 16px; padding: 20px; margin-top: 20px; }
+    .nav { font-size: 32px; cursor: pointer; margin: 5px; }
+    .emoji-option { font-size: 24px; cursor: pointer; margin: 5px; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 10px; }
+    .day { padding: 10px; background: #fff; border-radius: 8px; text-align: center; cursor: pointer; }
+    .day:hover { background: #ffe6a7; }
+    .selected-day { background: #ffdf80; }
+    .tag { background: #ffdcdc; padding: 5px 8px; border-radius: 8px; margin: 3px; display: inline-block; }
+    button, input, textarea {
+      font-size: 16px; padding: 10px; margin-top: 10px;
+      border: none; border-radius: 8px; width: 100%;
+    }
+    .controls { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+  <section id="password-section">
+    <h2>비밀번호를 입력하세요 🔐</h2>
+    <input type="password" id="password-input" placeholder="비밀번호">
+    <button id="enter-button">입장</button>
+  </section>
+
+  <section id="main-content" class="hidden">
+    <h1>🍓 Liive의 비밀의 방</h1>
+    <audio id="bgm" src="bgm.mp3" loop></audio>
+    <button onclick="document.getElementById('bgm').play()">🎵 수동으로 음악 재생하기</button>
+
+    <div>
+      <span class="nav" onclick="showSection('diary')">🍓</span>
+      <span class="nav" onclick="showSection('bamboo')">🍓</span>
+      <span class="nav" onclick="showSection('insight')">🍓</span>
+    </div>
+
+    <div id="diary" class="section visible">
+      <h2>오늘의 다이어리 📆</h2>
+      <div class="controls">
+        <label for="month">월:</label>
+        <select id="month"></select>
+        <label for="year">년:</label>
+        <select id="year"></select>
+      </div>
+      <div class="calendar" id="calendar"></div>
+      <div id="entry-area" class="hidden">
+        <h3 id="entry-title"></h3>
+        <div>
+          감정 이모지:
+          <span class="emoji-option" onclick="setEmoji('😊')">😊</span>
+          <span class="emoji-option" onclick="setEmoji('😢')">😢</span>
+          <span class="emoji-option" onclick="setEmoji('😴')">😴</span>
+          <span class="emoji-option" onclick="setEmoji('😡')">😡</span>
+          <span class="emoji-option" onclick="setEmoji('😍')">😍</span>
+        </div>
+        <div>선택한 이모지: <span id="selected-emoji">❓</span></div>
+        <textarea id="diary-text" placeholder="일기를 써보세요."></textarea>
+      </div>
+    </div>
+
+    <div id="bamboo" class="section">
+      <h2>대나무숲 🌿</h2>
+      <textarea placeholder="혼자만 알고 싶은 이야기들을 여기에 남겨보세요."></textarea>
+    </div>
+
+    <div id="insight" class="section">
+      <h2>인사이트 💡</h2>
+      <input id="insight-input" placeholder="명언, 영감 등을 써보세요.">
+      <button onclick="addInsight()">추가</button>
+      <div id="insight-list"></div>
+    </div>
+  </section>
+
+  <script>
+    let selectedDate = null;
+
+    function checkPassword() {
+      const input = document.getElementById("password-input").value;
+      if (input === "0303") {
+        document.getElementById("password-section").classList.add("hidden");
+        document.getElementById("main-content").classList.remove("hidden");
+        const bgm = document.getElementById("bgm");
+        bgm.volume = 0.7;
+        bgm.play().catch(() => {
+          alert("음악 자동 재생이 차단되었어요! 아래 버튼을 눌러주세요 🎵");
+        });
+        populateCalendar();
+      } else {
+        alert("비밀번호가 틀렸어요! 다시 입력해주세요 🍒");
+      }
+    }
+
+    function showSection(id) {
+      document.querySelectorAll(".section").forEach(el => el.classList.remove("visible"));
+      document.getElementById(id).classList.add("visible");
+    }
+
+    function setEmoji(emoji) {
+      document.getElementById("selected-emoji").textContent = emoji;
+    }
+
+    function addInsight() {
+      const input = document.getElementById("insight-input");
+      const value = input.value.trim();
+      if (value) {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = value;
+        document.getElementById("insight-list").appendChild(tag);
+        input.value = "";
+      }
+    }
+
+    function populateCalendar() {
+      const now = new Date();
+      const monthSelect = document.getElementById("month");
+      const yearSelect = document.getElementById("year");
+      const calendar = document.getElementById("calendar");
+
+      monthSelect.innerHTML = "";
+      yearSelect.innerHTML = "";
+      for (let m = 0; m < 12; m++) {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = `${m + 1}월`;
+        monthSelect.appendChild(opt);
+      }
+      for (let y = 2024; y <= 2026; y++) {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = `${y}년`;
+        yearSelect.appendChild(opt);
+      }
+      monthSelect.value = now.getMonth();
+      yearSelect.value = now.getFullYear();
+      monthSelect.onchange = renderCalendar;
+      yearSelect.onchange = renderCalendar;
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById("calendar");
+      calendar.innerHTML = "";
+      const month = +document.getElementById("month").value;
+      const year = +document.getElementById("year").value;
+      const date = new Date(year, month, 1);
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const day = document.createElement("div");
+        day.className = "day";
+        day.textContent = i;
+        day.onclick = () => showEntry(year, month + 1, i);
+        calendar.appendChild(day);
+      }
+    }
+
+    function showEntry(year, month, day) {
+      selectedDate = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+      document.getElementById("entry-title").textContent = `📅 ${selectedDate}의 일기`;
+      document.getElementById("entry-area").classList.remove("hidden");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("enter-button").addEventListener("click", checkPassword);
+    });
+  </script>
+  </div>
+</body>
+</html>
